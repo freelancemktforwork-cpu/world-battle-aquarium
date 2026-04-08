@@ -177,31 +177,50 @@ class AutoMC {
 
     // ===== LOAD GIỌNG NÓI =====
     loadVoices() {
-        const voices = this.synth.getVoices();
-        if (voices.length === 0) return;
+    const voices = this.synth.getVoices();
+    if (voices.length === 0) return;
 
-        const preferred = [
-            'Google UK English Female',
-            'Google UK English Male',
-            'Google US English',
-            'Microsoft Zira',
-            'Microsoft David',
-            'Samantha',
-            'Alex',
-        ];
+    // Ưu tiên giọng English tự nhiên nhất
+    const preferred = [
+        // Google voices (tự nhiên nhất)
+        'Google US English',
+        'Google UK English Female',
+        'Google UK English Male',
+        // Microsoft Online voices (chất lượng cao)
+        'Microsoft Ana Online (Natural)',
+        'Microsoft Jenny Online (Natural)',
+        'Microsoft Guy Online (Natural)',
+        'Microsoft Aria Online (Natural)',
+        // Microsoft Desktop voices
+        'Microsoft Zira Desktop',
+        'Microsoft David Desktop',
+        'Microsoft Mark',
+        // macOS voices
+        'Samantha',
+        'Alex',
+        'Karen',
+        'Daniel',
+    ];
 
-        for (const name of preferred) {
-            const found = voices.find(v => v.name.includes(name));
-            if (found) { this.voice = found; break; }
+    for (const name of preferred) {
+        const found = voices.find(v => v.name.includes(name));
+        if (found) {
+            this.voice = found;
+            break;
         }
-
-        if (!this.voice) {
-            this.voice = voices.find(v => v.lang.startsWith('en')) || voices[0];
-        }
-
-        this.voiceReady = true;
-        console.log('🎙️ MC Voice loaded:', this.voice?.name);
     }
+
+    // Fallback: tìm giọng en-US trước, rồi en-GB, rồi bất kỳ en
+    if (!this.voice) {
+        this.voice = voices.find(v => v.lang === 'en-US')
+            || voices.find(v => v.lang === 'en-GB')
+            || voices.find(v => v.lang.startsWith('en'))
+            || voices[0];
+    }
+
+    this.voiceReady = true;
+    console.log('🎙️ MC Voice loaded:', this.voice?.name, '(' + this.voice?.lang + ')');
+}
 
     // ===== THÊM VÀO HÀNG CHỜ =====
     // priority: 0=URGENT, 1=HIGH, 2=NORMAL, 3=LOW
@@ -263,57 +282,75 @@ class AutoMC {
 
     // ===== NÓI 1 CÂU =====
     _speak(text, emotion = 'normal') {
-        if (!this.voiceReady || this.isSpeaking) return;
+    if (!this.voiceReady || this.isSpeaking) return;
 
-        const utterance = new SpeechSynthesisUtterance(text);
-        utterance.voice = this.voice;
+    const utterance = new SpeechSynthesisUtterance(text);
+    utterance.voice = this.voice;
+    utterance.lang = 'en-US';
 
-        // Giọng thay đổi theo cảm xúc
-        switch (emotion) {
-            case 'excited':
-                utterance.rate = 1.25;
-                utterance.pitch = 1.35;
-                utterance.volume = 0.9;
-                break;
-            case 'epic':
-                utterance.rate = 1.15;
-                utterance.pitch = 1.5;
-                utterance.volume = 1.0;
-                break;
-            case 'warning':
-                utterance.rate = 0.95;
-                utterance.pitch = 0.85;
-                utterance.volume = 1.0;
-                break;
-            case 'calm':
-                utterance.rate = 1.0;
-                utterance.pitch = 1.1;
-                utterance.volume = 0.7;
-                break;
-            default: // normal
-                utterance.rate = 1.1;
-                utterance.pitch = 1.2;
-                utterance.volume = 0.8;
-                break;
-        }
-
-        this.isSpeaking = true;
-        this.currentUtterance = utterance;
-
-        utterance.onend = () => {
-            this.isSpeaking = false;
-            this.currentUtterance = null;
-            this.lastSpokeTime = Date.now();
-        };
-
-        utterance.onerror = () => {
-            this.isSpeaking = false;
-            this.currentUtterance = null;
-            this.lastSpokeTime = Date.now();
-        };
-
-        this.synth.speak(utterance);
+    // Giọng thay đổi theo cảm xúc
+    switch (emotion) {
+        case 'excited':
+            utterance.rate = 1.15;
+            utterance.pitch = 1.25;
+            utterance.volume = 0.9;
+            break;
+        case 'epic':
+            utterance.rate = 1.05;
+            utterance.pitch = 1.3;
+            utterance.volume = 1.0;
+            break;
+        case 'warning':
+            utterance.rate = 0.9;
+            utterance.pitch = 0.8;
+            utterance.volume = 1.0;
+            break;
+        case 'calm':
+            utterance.rate = 0.95;
+            utterance.pitch = 1.05;
+            utterance.volume = 0.75;
+            break;
+        default: // normal
+            utterance.rate = 1.0;
+            utterance.pitch = 1.1;
+            utterance.volume = 0.85;
+            break;
     }
+
+    this.isSpeaking = true;
+    this.currentUtterance = utterance;
+
+    utterance.onend = () => {
+        this.isSpeaking = false;
+        this.currentUtterance = null;
+        this.lastSpokeTime = Date.now();
+    };
+
+    utterance.onerror = () => {
+        this.isSpeaking = false;
+        this.currentUtterance = null;
+        this.lastSpokeTime = Date.now();
+    };
+
+    // Fix Chrome bug: speechSynthesis bị treo sau 15 giây
+    if (this.synth.paused) {
+        this.synth.resume();
+    }
+
+    this.synth.speak(utterance);
+
+    // Chrome workaround: tự resume nếu bị pause
+    this._chromeFixTimer = setInterval(() => {
+        if (!this.isSpeaking) {
+            clearInterval(this._chromeFixTimer);
+            return;
+        }
+        if (this.synth.paused) {
+            this.synth.resume();
+        }
+    }, 5000);
+}
+
 
     // ===== GỘP SỰ KIỆN (batch) =====
     startBatchProcessor() {
