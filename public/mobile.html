@@ -9,85 +9,184 @@
     <title>World Battle Aquarium - Mobile</title>
     <link rel="stylesheet" href="/css/style.css">
     <style>
-        body {
-            overflow: hidden;
-            background: #000;
-            margin: 0;
-            padding: 0;
-            width: 100vw;
-            height: 100vh;
-            position: fixed;
-            top: 0;
-            left: 0;
-        }
+    body {
+        overflow: hidden;
+        background: #000;
+        margin: 0;
+        padding: 0;
+        width: 100vw;
+        height: 100vh;
+        position: fixed;
+        top: 0;
+        left: 0;
+    }
 
-        #game-container {
-            width: 100vw;
-            height: 100vh;
-            position: fixed;
-            top: 0;
-            left: 0;
-        }
+    #game-container {
+        width: 100vw;
+        height: 100vh;
+        position: fixed;
+        top: 0;
+        left: 0;
+    }
 
-        canvas {
-            width: 100vw;
-            height: 100vh;
-            display: block;
-        }
+    canvas {
+        width: 100vw;
+        height: 100vh;
+        display: block;
+    }
 
-        /* Mobile leaderboard */
-        #leaderboard {
-            position: fixed;
-            top: 10px;
-            left: 10px;
-            width: 200px;
-            font-size: 11px;
-            transform: scale(0.85);
-            transform-origin: top left;
-        }
+    /* ===== MOBILE LEADERBOARD - Góc trên trái, nhỏ gọn ===== */
+    #leaderboard {
+        position: fixed !important;
+        top: 8px !important;
+        left: 8px !important;
+        width: 160px !important;
+        max-height: 220px !important;
+        overflow: hidden !important;
+        border-radius: 10px !important;
+        padding: 0 !important;
+        z-index: 100 !important;
+        background: linear-gradient(135deg, rgba(10, 15, 40, 0.85), rgba(20, 30, 70, 0.8)) !important;
+        border: 1px solid rgba(100, 180, 255, 0.25) !important;
+        backdrop-filter: blur(8px) !important;
+        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.4) !important;
+    }
 
-        .lb-title { font-size: 15px; padding: 7px 0; }
-        .lb-row { padding: 4px 8px; }
-        .lb-rank { width: 24px; font-size: 12px; }
-        .lb-name { font-size: 11px; }
-        .lb-score { font-size: 12px; }
-        .lb-flag img { width: 16px; height: 11px; }
+    .lb-title {
+        font-size: 13px !important;
+        padding: 6px 0 !important;
+    }
 
-        /* Mobile guide */
-        #guide {
-            position: fixed;
-            bottom: 10px;
-            left: 10px;
-            width: 200px;
-            top: auto !important;
-            transform: scale(0.85);
-            transform-origin: bottom left;
-            padding: 8px 10px;
-        }
+    .lb-row {
+        padding: 3px 6px !important;
+    }
 
-        .guide-title { font-size: 14px; margin-bottom: 5px; }
-        .guide-icon { font-size: 14px; min-width: 20px; }
-        .guide-text { font-size: 11px; }
+    .lb-rank {
+        width: 22px !important;
+        font-size: 11px !important;
+    }
 
-        /* Mobile gift popup */
-        #gift-popup-container {
-            top: 60px;
-            max-width: 90%;
-        }
+    .lb-flag {
+        width: 20px !important;
+        margin-right: 3px !important;
+    }
 
-        .gift-popup-inner { padding: 8px 12px; }
-        .gift-popup-gift-icon { font-size: 26px; }
-        .gift-popup-user { font-size: 12px; }
+    .lb-flag img {
+        width: 14px !important;
+        height: 10px !important;
+    }
 
-        /* Hide music controls */
-        #music-controls { display: none !important; }
+    .lb-name {
+        font-size: 10px !important;
+    }
 
-        /* Mobile evolution notify */
-        #evolution-notify {
-            font-size: 16px;
-            padding: 12px 24px;
-        }
-    </style>
+    .lb-score {
+        font-size: 11px !important;
+        margin-left: 4px !important;
+    }
+
+    .lb-top1 .lb-rank { font-size: 12px !important; }
+    .lb-top1 .lb-name { font-size: 11px !important; }
+    .lb-top1 .lb-score { font-size: 12px !important; }
+
+    /* ===== MOBILE GUIDE - Góc trên phải ===== */
+    #guide {
+        position: fixed !important;
+        top: 8px !important;
+        right: 8px !important;
+        left: auto !important;
+        bottom: auto !important;
+        width: 155px !important;
+        padding: 8px 10px !important;
+        border-radius: 10px !important;
+        z-index: 100 !important;
+        background: linear-gradient(135deg, rgba(10, 15, 40, 0.85), rgba(20, 30, 70, 0.8)) !important;
+        border: 1px solid rgba(255, 180, 50, 0.25) !important;
+        backdrop-filter: blur(8px) !important;
+        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.4) !important;
+    }
+
+    .guide-title {
+        font-size: 12px !important;
+        margin-bottom: 4px !important;
+    }
+
+    .guide-row {
+        padding: 2px 0 !important;
+        gap: 4px !important;
+    }
+
+    .guide-icon {
+        font-size: 12px !important;
+        min-width: 18px !important;
+    }
+
+    .guide-text {
+        font-size: 9px !important;
+    }
+
+    /* ===== MOBILE GIFT POPUP - Giữa màn hình, không che UI ===== */
+    #gift-popup-container {
+        position: fixed !important;
+        top: 240px !important;
+        left: 50% !important;
+        transform: translateX(-50%) !important;
+        z-index: 200 !important;
+        max-width: 85% !important;
+        width: 320px !important;
+    }
+
+    .gift-popup-inner {
+        padding: 8px 10px !important;
+        border-radius: 12px !important;
+        gap: 6px !important;
+    }
+
+    .gift-popup-gift-icon {
+        font-size: 24px !important;
+    }
+
+    .gift-popup-user {
+        font-size: 11px !important;
+    }
+
+    .gift-popup-gift-name {
+        font-size: 9px !important;
+    }
+
+    .gift-popup-coins {
+        font-size: 8px !important;
+    }
+
+    .gift-popup-arrow {
+        font-size: 14px !important;
+    }
+
+    .gift-popup-fish-icon {
+        font-size: 22px !important;
+    }
+
+    .gift-popup-fish-name {
+        font-size: 8px !important;
+    }
+
+    .gift-popup-tier {
+        font-size: 7px !important;
+    }
+
+    /* ===== MOBILE EVOLUTION NOTIFY ===== */
+    #evolution-notify {
+        font-size: 14px !important;
+        padding: 10px 20px !important;
+        border-radius: 12px !important;
+        max-width: 80% !important;
+    }
+
+    /* ===== ẨN MUSIC CONTROLS ===== */
+    #music-controls {
+        display: none !important;
+    }
+</style>
 </head>
 <body>
     <div id="game-container">
