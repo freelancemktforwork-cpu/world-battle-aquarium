@@ -182,8 +182,7 @@ class WorldBattleAquarium {
             }
         }, 500);
  // === CÁ MỒI TỰ ĐỘNG ===
-        this.spawnDecoyFish();
-        this.startAutoSpawner();
+       this.initSmartDecoy();
         console.log('🌊 World Battle Aquarium v3.0 initialized!');
     }
 
@@ -207,129 +206,289 @@ class WorldBattleAquarium {
         }
     }
   // ===== CÁ MỒI - DECOY SYSTEM =====
-    spawnDecoyFish() {
-        var decoys = [
-            { tier: 'legendary', count: 1 },
-            { tier: 'epic', count: 2 },
-            { tier: 'rare', count: 3 },
-            { tier: 'common', count: 5 },
-            { tier: 'tiny', count: 10 },
-        ];
+    // ============================================
+// SMART DECOY SYSTEM - Hệ thống chim mồi thông minh
+// ============================================
 
-        for (var d = 0; d < decoys.length; d++) {
-            for (var i = 0; i < decoys[d].count; i++) {
-                var fish = new Fish(
-                    this.canvas,
-                    this.getDecoyName(),
-                    this.getDecoyCountry(),
-                    decoys[d].tier,
-                    'Decoy'
-                );
+initSmartDecoy() {
+    this.decoy = {
+        enabled: true,
+        phase: 1,              // Giai đoạn 1, 2, 3
+        startTime: Date.now(),
+        realPlayerCount: 0,    // Số người thật đã tặng
+        realPlayers: new Set(),// Danh sách người thật
+        botFishes: [],         // Danh sách cá bot
+        lastBotAction: 0,
+        lastHunterSpawn: 0,
+        lastBossSpawn: 0,
+        lastCallToAction: 0,
+    };
+
+    // Spawn cá ban đầu
+    this.spawnInitialDecoys();
+
+    // Bắt đầu vòng lặp decoy
+    this.startDecoyLoop();
+
+    console.log('🎭 Smart Decoy System: ACTIVE');
+}
+
+spawnInitialDecoys() {
+    var decoyData = [
+        // Cá lớn (tạo kịch tính)
+        { tier: 'legendary', count: 1 },
+        { tier: 'epic', count: 2 },
+        { tier: 'rare', count: 3 },
+        // Cá nhỏ (mồi cho cá lớn ăn)
+        { tier: 'common', count: 5 },
+        { tier: 'tiny', count: 8 },
+    ];
+
+    var names = [
+        'Ocean_King', 'Sea_Master', 'Wave_Pro', 'Shark_Fan',
+        'Deep_Diver', 'Coral_Star', 'Reef_Queen', 'Tide_Boss',
+        'Pearl_Hunter', 'Storm_Fish', 'Aqua_Lord', 'Blue_Wave',
+        'Sea_Dragon', 'Nemo_Fan', 'Whale_Song', 'Dolphin_Rider',
+        'Coral_Lover', 'Reef_Walker', 'Aqua_King', 'Ocean_Explorer'
+    ];
+    var countries = ['VN', 'US', 'JP', 'KR', 'BR', 'DE', 'FR', 'GB', 'TH', 'IN', 'PH', 'ID', 'MX', 'IT', 'ES', 'AU', 'CA', 'TR', 'RU', 'EG'];
+    var nameIdx = 0;
+
+    for (var d = 0; d < decoyData.length; d++) {
+        for (var i = 0; i < decoyData[d].count; i++) {
+            var name = names[nameIdx % names.length];
+            var country = countries[nameIdx % countries.length];
+            nameIdx++;
+
+            try {
+                var fish = new Fish(this.canvas, name, country, decoyData[d].tier, 'decoy');
                 fish.isDecoy = true;
+                fish.score = Math.floor(Math.random() * 50) + 5;
+
+                // Cá lớn spawn ở giữa, cá nhỏ spawn ngẫu nhiên
+                if (decoyData[d].tier === 'legendary' || decoyData[d].tier === 'epic') {
+                    fish.x = this.canvas.width * (0.3 + Math.random() * 0.4);
+                    fish.y = this.canvas.height * (0.3 + Math.random() * 0.4);
+                }
+
                 this.fishes.push(fish);
+                this.decoy.botFishes.push(fish);
+            } catch (e) {
+                console.error('Decoy spawn error:', e);
             }
         }
-        console.log('🐟 Spawned ' + this.fishes.length + ' decoy fish!');
     }
 
-    startAutoSpawner() {
-        var self = this;
+    console.log('🐟 Spawned ' + this.decoy.botFishes.length + ' decoy fish');
+}
 
-        // Mỗi 8 giây: thêm 1-2 cá nhỏ tự nhiên
-        setInterval(function() {
-            if (self.fishes.length < 30) {
-                var tiers = ['tiny', 'tiny', 'tiny', 'common', 'common', 'rare'];
-                var tier = tiers[Math.floor(Math.random() * tiers.length)];
-                var fish = new Fish(
-                    self.canvas,
-                    self.getDecoyName(),
-                    self.getDecoyCountry(),
-                    tier,
-                    'Auto'
-                );
-                fish.isDecoy = true;
-                self.fishes.push(fish);
-            }
-        }, 8000);
+startDecoyLoop() {
+    var self = this;
 
-        // Mỗi 30 giây: thêm 1 cá lớn săn mồi (tạo kịch tính)
-        setInterval(function() {
-            var aliveFish = [];
-            for (var i = 0; i < self.fishes.length; i++) {
-                if (self.fishes[i].alive) aliveFish.push(self.fishes[i]);
-            }
-            if (aliveFish.length < 5) return;
+    // === Vòng lặp chính: mỗi 3 giây ===
+    setInterval(function() {
+        if (!self.decoy.enabled) return;
 
-            var hunterTiers = ['rare', 'rare', 'epic', 'epic', 'legendary'];
-            var tier = hunterTiers[Math.floor(Math.random() * hunterTiers.length)];
-            var hunter = new Fish(
-                self.canvas,
-                self.getDecoyName(),
-                self.getDecoyCountry(),
-                tier,
-                'Hunter'
-            );
-            hunter.isDecoy = true;
+        var now = Date.now();
+        var elapsed = (now - self.decoy.startTime) / 1000; // giây
+        var aliveFish = self.fishes.filter(function(f) { return f.alive; }).length;
+        var aliveDecoys = self.decoy.botFishes.filter(function(f) { return f.alive; }).length;
 
-            // Spawn từ rìa màn hình
-            var side = Math.floor(Math.random() * 2);
-            if (side === 0) {
-                hunter.x = -hunter.size * 2;
-                hunter.direction = 1;
-                hunter.vx = hunter.speed;
-            } else {
-                hunter.x = self.canvas.width + hunter.size * 2;
-                hunter.direction = -1;
-                hunter.vx = -hunter.speed;
+        // === CẬP NHẬT PHASE ===
+        if (self.decoy.realPlayerCount >= 10 || elapsed > 900) {
+            self.decoy.phase = 3;
+        } else if (self.decoy.realPlayerCount >= 3 || elapsed > 300) {
+            self.decoy.phase = 2;
+        } else {
+            self.decoy.phase = 1;
+        }
+
+        // === PHASE 1: Sôi động tối đa (0-5 phút, < 3 người thật) ===
+        if (self.decoy.phase === 1) {
+
+            // Thêm cá nhỏ nếu quá ít
+            if (aliveFish < 15 && now - self.decoy.lastBotAction > 5000) {
+                self.spawnDecoyFish(['tiny', 'common', 'rare']);
+                self.decoy.lastBotAction = now;
             }
 
-            self.fishes.push(hunter);
-            self.updateFeedUI('🦈 A wild ' + hunter.type.name + ' appeared!');
-        }, 30000);
-
-        // Mỗi 90 giây: event đặc biệt — cá mythic xuất hiện
-        setInterval(function() {
-            var aliveFish = [];
-            for (var i = 0; i < self.fishes.length; i++) {
-                if (self.fishes[i].alive) aliveFish.push(self.fishes[i]);
+            // Thêm hunter cá lớn mỗi 20 giây
+            if (now - self.decoy.lastHunterSpawn > 20000) {
+                self.spawnDecoyHunter();
+                self.decoy.lastHunterSpawn = now;
             }
-            if (aliveFish.length < 10) return;
 
-            var boss = new Fish(
-                self.canvas,
-                '🌟 OCEAN KING',
-                '🌍',
-                'mythic',
-                'Event'
-            );
-            boss.isDecoy = true;
-            boss.x = self.canvas.width / 2;
-            boss.y = self.canvas.height / 2;
+            // Boss mỗi 60 giây
+            if (now - self.decoy.lastBossSpawn > 60000 && elapsed > 15) {
+                self.spawnDecoyBoss();
+                self.decoy.lastBossSpawn = now;
+            }
 
-            self.fishes.push(boss);
-            self.createShockwave(boss.x, boss.y);
-            self.screenShake = 15;
-            self.showEvolutionNotify('🌟 OCEAN KING has appeared! Send gifts to challenge!');
-            self.updateFeedUI('👑 OCEAN KING appeared — send gifts to summon YOUR champion!');
-            if (self.mc) self.mc.speak('Attention! The Ocean King has arrived! Send gifts to challenge the king!', 'high', 'epic');
-        }, 90000);
+            // Kêu gọi tặng quà mỗi 25 giây
+            if (now - self.decoy.lastCallToAction > 25000) {
+                self.showCallToAction();
+                self.decoy.lastCallToAction = now;
+            }
+        }
+
+        // === PHASE 2: Giảm dần bot (5-15 phút, 3-10 người thật) ===
+        else if (self.decoy.phase === 2) {
+
+            // Chỉ thêm cá nếu quá ít
+            if (aliveFish < 8 && now - self.decoy.lastBotAction > 10000) {
+                self.spawnDecoyFish(['tiny', 'common']);
+                self.decoy.lastBotAction = now;
+            }
+
+            // Hunter ít hơn
+            if (now - self.decoy.lastHunterSpawn > 40000 && aliveDecoys < 5) {
+                self.spawnDecoyHunter();
+                self.decoy.lastHunterSpawn = now;
+            }
+
+            // Kêu gọi ít hơn
+            if (now - self.decoy.lastCallToAction > 45000) {
+                self.showCallToAction();
+                self.decoy.lastCallToAction = now;
+            }
+        }
+
+        // === PHASE 3: Tắt bot (15+ phút hoặc đủ người) ===
+        else {
+            // Không spawn thêm bot
+            // Chỉ giữ kêu gọi nhẹ
+            if (now - self.decoy.lastCallToAction > 60000) {
+                self.showCallToAction();
+                self.decoy.lastCallToAction = now;
+            }
+        }
+
+    }, 3000);
+
+    // === Fake engagement: giả lập like/score mỗi 8 giây ===
+    setInterval(function() {
+        if (!self.decoy.enabled || self.decoy.phase === 3) return;
+
+        var aliveDecoys = self.decoy.botFishes.filter(function(f) { return f.alive; });
+        if (aliveDecoys.length === 0) return;
+
+        // Random 1-3 con cá bot tăng score
+        var count = Math.min(1 + Math.floor(Math.random() * 3), aliveDecoys.length);
+        for (var i = 0; i < count; i++) {
+            var fish = aliveDecoys[Math.floor(Math.random() * aliveDecoys.length)];
+            fish.score = (fish.score || 0) + Math.floor(Math.random() * 5) + 1;
+        }
+    }, 8000);
+}
+
+spawnDecoyFish(tiers) {
+    var tier = tiers[Math.floor(Math.random() * tiers.length)];
+    var names = ['Lucky_Fish', 'Star_Wave', 'Moon_Sea', 'Sun_Reef', 'Cool_Fin', 'Happy_Gill', 'Swift_Tail', 'Bright_Scale'];
+    var countries = ['VN', 'US', 'JP', 'KR', 'BR', 'TH', 'FR', 'DE'];
+
+    var name = names[Math.floor(Math.random() * names.length)];
+    var country = countries[Math.floor(Math.random() * countries.length)];
+
+    try {
+        var fish = new Fish(this.canvas, name, country, tier, 'decoy');
+        fish.isDecoy = true;
+        fish.score = Math.floor(Math.random() * 10) + 1;
+        this.fishes.push(fish);
+        this.decoy.botFishes.push(fish);
+    } catch (e) {}
+}
+
+spawnDecoyHunter() {
+    var tiers = ['rare', 'epic', 'legendary'];
+    var tier = tiers[Math.floor(Math.random() * tiers.length)];
+    var names = ['HUNTER_X', 'Predator_Pro', 'Mega_Shark', 'Alpha_Fish', 'Boss_Wave'];
+    var countries = ['US', 'JP', 'KR', 'GB', 'DE'];
+
+    var name = names[Math.floor(Math.random() * names.length)];
+    var country = countries[Math.floor(Math.random() * countries.length)];
+
+    try {
+        var fish = new Fish(this.canvas, name, country, tier, 'hunter');
+        fish.isDecoy = true;
+        fish.isHunting = true;
+        fish.score = Math.floor(Math.random() * 80) + 20;
+
+        // Spawn từ cạnh màn hình
+        var side = Math.floor(Math.random() * 4);
+        if (side === 0) { fish.x = -50; fish.y = Math.random() * this.canvas.height; }
+        else if (side === 1) { fish.x = this.canvas.width + 50; fish.y = Math.random() * this.canvas.height; }
+        else if (side === 2) { fish.x = Math.random() * this.canvas.width; fish.y = -50; }
+        else { fish.x = Math.random() * this.canvas.width; fish.y = this.canvas.height + 50; }
+
+        this.fishes.push(fish);
+        this.decoy.botFishes.push(fish);
+
+        // MC thông báo
+        if (this.mc) {
+            this.mc.speak('Watch out! A hunter just entered the ocean!', 2, 'warning');
+        }
+    } catch (e) {}
+}
+
+spawnDecoyBoss() {
+    var names = ['OCEAN_KING', 'SEA_TITAN', 'DEEP_LORD'];
+    var name = names[Math.floor(Math.random() * names.length)];
+
+    try {
+        var fish = new Fish(this.canvas, name, '🌍', 'mythic', 'boss');
+        fish.isDecoy = true;
+        fish.isHunting = true;
+        fish.score = Math.floor(Math.random() * 200) + 100;
+        fish.x = this.canvas.width / 2;
+        fish.y = this.canvas.height / 2;
+
+        this.fishes.push(fish);
+        this.decoy.botFishes.push(fish);
+
+        // Hiệu ứng
+        if (this.mc) {
+            this.mc.speak('WARNING! A BOSS has appeared! Send gifts to defeat it!', 0, 'epic');
+        }
+
+        // Screen shake
+        if (typeof this.screenShake === 'function') {
+            this.screenShake(10, 1000);
+        }
+    } catch (e) {}
+}
+
+showCallToAction() {
+    var messages = [
+        '🎁 Send a gift to spawn YOUR fish!',
+        '🐟 Bigger gift = BIGGER fish!',
+        '👑 Will YOU be the Ocean Champion?',
+        '🔥 Drop a gift and join the battle!',
+        '💎 Legendary gifts spawn LEGENDARY fish!',
+        '⚔️ Your fish is hungry! Feed it with gifts!',
+    ];
+    var msg = messages[Math.floor(Math.random() * messages.length)];
+
+    // Hiển thị notification
+    var notify = document.getElementById('evolution-notify');
+    if (notify) {
+        notify.textContent = msg;
+        notify.classList.add('show');
+        setTimeout(function() {
+            notify.classList.remove('show');
+        }, 4000);
     }
+}
 
-    getDecoyName() {
-        var names = [
-            'Ocean_Explorer', 'DeepSea_Fan', 'Coral_Lover', 'Wave_Rider',
-            'Fish_Master', 'Aqua_King', 'Sea_Star', 'Reef_Walker',
-            'Tide_Hunter', 'Pearl_Diver', 'Shell_Seeker', 'Bubble_Pop',
-            'Nemo_Fan', 'Shark_Bait', 'Whale_Song', 'Drift_Wood',
-            'Ocean_Breeze', 'Sandy_Beach', 'Blue_Lagoon', 'Storm_Surge'
-        ];
-        return names[Math.floor(Math.random() * names.length)];
+// Gọi khi có người thật tặng quà/like
+registerRealPlayer(username) {
+    if (!this.decoy) return;
+    if (!this.decoy.realPlayers.has(username)) {
+        this.decoy.realPlayers.add(username);
+        this.decoy.realPlayerCount = this.decoy.realPlayers.size;
+        console.log('👤 Real player: ' + username + ' (total: ' + this.decoy.realPlayerCount + ')');
     }
+}
 
-    getDecoyCountry() {
-        var countries = ['VN', 'US', 'JP', 'KR', 'BR', 'DE', 'FR', 'TH', 'IN', 'GB', 'AU', 'MX', 'IT', 'ES', 'CA'];
-        return countries[Math.floor(Math.random() * countries.length)];
-    }
     // ===== WEBSOCKET =====
     connectWebSocket() {
         var protocol = location.protocol === 'https:' ? 'wss:' : 'ws:';
@@ -380,8 +539,8 @@ class WorldBattleAquarium {
 
     // ===== SỰ KIỆN: LIKE =====
     onLike(data) {
+		this.registerRealPlayer(username);
         this.stats.totalLikes += (data.likeCount || 1);
-
         var count = Math.min(data.likeCount || 1, 5);
         for (var i = 0; i < count; i++) {
             if (this.fishes.length < this.MAX_FISH) {
@@ -508,8 +667,8 @@ class WorldBattleAquarium {
 
     // ===== SỰ KIỆN: GIFT =====
     onGift(data) {
+		this.registerRealPlayer(username);
         this.stats.totalGifts++;
-
         var username = data.username || 'Anonymous';
         var country = data.country || '🌍';
         var giftName = data.giftName || 'Gift';
