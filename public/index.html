@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🌊 World Battle Aquarium - TikTok LIVE</title>
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+    <div id="game-container">
+        <canvas id="gameCanvas"></canvas>
+
+        <!-- BẢNG XẾP HẠNG - Thiết kế sang trọng -->
+        <div id="leaderboard">
+            <div class="lb-header">
+                <div class="lb-crown">👑</div>
+                <div class="lb-title">OCEAN CHAMPIONS</div>
+                <div class="lb-subtitle">Top Players</div>
+            </div>
+            <div id="leaderboard-list">
+                <div class="lb-empty">Waiting for players...</div>
+            </div>
+        </div>
+
+        <!-- EVENT FEED -->
+        <div id="event-feed"></div>
+
+        <!-- EVOLUTION NOTIFICATION -->
+        <div id="evolution-notify"></div>
+
+        <!-- HƯỚNG DẪN -->
+       <div id="guide">
+    <div class="guide-title">🎮 HOW TO PLAY</div>
+    <div class="guide-row"><span class="guide-icon">❤️</span> <span class="guide-text">Like = Tiny Fish</span></div>
+    <div class="guide-row"><span class="guide-icon">🌹</span> <span class="guide-text">Rose = Small Fish</span></div>
+    <div class="guide-row"><span class="guide-icon">🎁</span> <span class="guide-text">Big Gift = BIG Fish!</span></div>
+    <div class="guide-row"><span class="guide-icon">🦈</span> <span class="guide-text">Big fish eat small fish!</span></div>
+    <div class="guide-row"><span class="guide-icon">👑</span> <span class="guide-text">Top gifter = #1 Champion!</span></div>
+    <div class="guide-row"><span class="guide-icon">🌟</span> <span class="guide-text">Bigger gift = Bigger fish!</span></div>
+</div>
+
+
+        <!-- MUSIC CONTROLS -->
+        <div id="music-controls">
+            <div id="sound-control" onclick="game.audio.toggleMute()">
+                <span id="sound-icon">🔊</span>
+            </div>
+            <div id="skip-control" onclick="game.audio.skipTrack()">
+                <span>⏭️</span>
+            </div>
+            <div id="mc-control" onclick="toggleMC()">
+                <span id="mc-icon">🎙️</span>
+            </div>
+            <div id="now-playing">♪ Loading music...</div>
+        </div>
+    </div>
+
+    <!-- SCRIPTS (thứ tự quan trọng!) -->
+    <script src="js/countries.js"></script>
+    <script src="js/bubble.js"></script>
+    <script src="js/audio.js"></script>
+    <script src="js/mc.js"></script>
+    <script src="js/fish.js"></script>
+    <script src="js/game.js"></script>
+
+    <script>
+        function toggleMC() {
+            if (game && game.mc) {
+                const enabled = game.mc.toggle();
+                document.getElementById('mc-icon').textContent = enabled ? '🎙️' : '🔇';
+            }
+        }
+    </script>
+</body>
+</html>

@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, height=device-height, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="screen-orientation" content="portrait">
+    <title>World Battle Aquarium - Mobile</title>
+    <link rel="stylesheet" href="/css/style.css">
+    <style>
+        body {
+            overflow: hidden;
+            background: #000;
+            margin: 0;
+            padding: 0;
+            width: 100vw;
+            height: 100vh;
+            position: fixed;
+            top: 0;
+            left: 0;
+        }
+
+        #game-container {
+            width: 100vw;
+            height: 100vh;
+            position: fixed;
+            top: 0;
+            left: 0;
+        }
+
+        canvas {
+            width: 100vw;
+            height: 100vh;
+            display: block;
+        }
+
+        /* Mobile leaderboard */
+        #leaderboard {
+            position: fixed;
+            top: 10px;
+            left: 10px;
+            width: 200px;
+            font-size: 11px;
+            transform: scale(0.85);
+            transform-origin: top left;
+        }
+
+        .lb-title { font-size: 15px; padding: 7px 0; }
+        .lb-row { padding: 4px 8px; }
+        .lb-rank { width: 24px; font-size: 12px; }
+        .lb-name { font-size: 11px; }
+        .lb-score { font-size: 12px; }
+        .lb-flag img { width: 16px; height: 11px; }
+
+        /* Mobile guide */
+        #guide {
+            position: fixed;
+            bottom: 10px;
+            left: 10px;
+            width: 200px;
+            top: auto !important;
+            transform: scale(0.85);
+            transform-origin: bottom left;
+            padding: 8px 10px;
+        }
+
+        .guide-title { font-size: 14px; margin-bottom: 5px; }
+        .guide-icon { font-size: 14px; min-width: 20px; }
+        .guide-text { font-size: 11px; }
+
+        /* Mobile gift popup */
+        #gift-popup-container {
+            top: 60px;
+            max-width: 90%;
+        }
+
+        .gift-popup-inner { padding: 8px 12px; }
+        .gift-popup-gift-icon { font-size: 26px; }
+        .gift-popup-user { font-size: 12px; }
+
+        /* Hide music controls */
+        #music-controls { display: none !important; }
+
+        /* Mobile evolution notify */
+        #evolution-notify {
+            font-size: 16px;
+            padding: 12px 24px;
+        }
+    </style>
+</head>
+<body>
+    <div id="game-container">
+        <canvas id="gameCanvas"></canvas>
+
+        <!-- Leaderboard -->
+        <div id="leaderboard"></div>
+
+        <!-- Guide -->
+        <div id="guide">
+            <div class="guide-title">🎮 HOW TO PLAY</div>
+            <div class="guide-row"><span class="guide-icon">❤️</span><span class="guide-text">Like = Tiny Fish</span></div>
+            <div class="guide-row"><span class="guide-icon">🌹</span><span class="guide-text">Rose = Small Fish</span></div>
+            <div class="guide-row"><span class="guide-icon">🎁</span><span class="guide-text">Big Gift = BIG Fish!</span></div>
+            <div class="guide-row"><span class="guide-icon">🐋</span><span class="guide-text">Big fish eat small fish!</span></div>
+            <div class="guide-row"><span class="guide-icon">👑</span><span class="guide-text">Top gifter = #1 Champion!</span></div>
+            <div class="guide-row"><span class="guide-icon">🌟</span><span class="guide-text">Bigger gift = Bigger fish!</span></div>
+        </div>
+
+        <!-- Gift Popup -->
+        <div id="gift-popup-container"></div>
+
+        <!-- Evolution Notify -->
+        <div id="evolution-notify"></div>
+    </div>
+
+    <script src="/js/bubble.js"></script>
+    <script src="/js/fish.js"></script>
+    <script src="/js/audio.js"></script>
+    <script src="/js/mc.js"></script>
+    <script src="/js/game.js"></script>
+</body>
+</html>
