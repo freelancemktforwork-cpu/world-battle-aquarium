@@ -1,104 +1,199 @@
 <!DOCTYPE html>
-<html lang="vi">
+<html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, height=device-height, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="mobile-web-app-capable" content="yes">
     <meta name="screen-orientation" content="portrait">
+    <meta name="theme-color" content="#000000">
     <title>World Battle Aquarium - Mobile</title>
     <style>
+        /* ===== RESET & FULL SCREEN ===== */
         * { margin: 0; padding: 0; box-sizing: border-box; }
-
-        body {
+        html, body {
+            width: 100%; height: 100%;
             overflow: hidden;
             background: #000;
             font-family: 'Segoe UI', Arial, sans-serif;
-            width: 100vw;
-            height: 100vh;
-            position: fixed;
-            top: 0;
-            left: 0;
+            position: fixed; top: 0; left: 0;
             touch-action: none;
+            -webkit-user-select: none;
+            user-select: none;
+            -webkit-overflow-scrolling: none;
         }
 
         #game-container {
-            width: 100vw;
-            height: 100vh;
-            position: fixed;
-            top: 0;
-            left: 0;
-        }
-
-        canvas {
-            width: 100vw;
-            height: 100vh;
-            display: block;
-        }
-
-        /* ===== MOBILE LEADERBOARD - Thu gọn trên cùng ===== */
-        #leaderboard {
-            position: fixed;
-            top: 6px;
-            left: 6px;
-            width: 145px;
-            background: linear-gradient(135deg, rgba(8, 12, 35, 0.88), rgba(15, 25, 60, 0.85));
-            border: 1px solid rgba(100, 180, 255, 0.2);
-            border-radius: 10px;
-            padding: 0;
-            z-index: 100;
-            backdrop-filter: blur(8px);
-            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.4);
+            width: 100vw; height: 100vh;
+            position: fixed; top: 0; left: 0;
             overflow: hidden;
         }
 
-        .lb-title {
-            text-align: center;
-            font-size: 11px;
-            font-weight: 800;
-            padding: 5px 0;
-            color: #FFD700;
-            background: linear-gradient(180deg, rgba(255, 215, 0, 0.12), transparent);
-            border-bottom: 1px solid rgba(255, 215, 0, 0.15);
-            letter-spacing: 0.5px;
-            text-shadow: 0 0 6px rgba(255, 215, 0, 0.4);
+        /* ===== CANVAS - HIGH RES ===== */
+        canvas {
+            width: 100vw; height: 100vh;
+            display: block;
+            position: fixed; top: 0; left: 0;
+            image-rendering: -webkit-optimize-contrast;
+            image-rendering: crisp-edges;
         }
 
+        /* ===== MOBILE LEADERBOARD - TOP LEFT ===== */
+        #leaderboard {
+            position: fixed;
+            top: 8px;
+            left: 8px;
+            width: 155px;
+            background: linear-gradient(135deg, rgba(5,10,30,0.92), rgba(10,20,55,0.88));
+            border: 1px solid rgba(100,180,255,0.25);
+            border-radius: 12px;
+            padding: 0;
+            z-index: 100;
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            box-shadow: 0 3px 15px rgba(0,0,0,0.5);
+            overflow: hidden;
+        }
+        .lb-title {
+            text-align: center;
+            font-size: 12px;
+            font-weight: 800;
+            padding: 6px 0;
+            color: #FFD700;
+            background: linear-gradient(180deg, rgba(255,215,0,0.15), transparent);
+            border-bottom: 1px solid rgba(255,215,0,0.15);
+            letter-spacing: 0.5px;
+            text-shadow: 0 0 8px rgba(255,215,0,0.5);
+        }
         .lb-row {
             display: flex;
             align-items: center;
-            padding: 2px 5px;
-            border-bottom: 1px solid rgba(255, 255, 255, 0.03);
+            padding: 3px 6px;
+            border-bottom: 1px solid rgba(255,255,255,0.03);
+            min-height: 22px;
         }
-
         .lb-row:last-child { border-bottom: none; }
-
         .lb-rank {
-            width: 18px;
+            width: 20px;
             text-align: center;
-            font-size: 9px;
+            font-size: 10px;
             font-weight: 700;
-            color: rgba(255, 255, 255, 0.45);
+            color: rgba(255,255,255,0.45);
             flex-shrink: 0;
         }
-
         .lb-flag {
             width: 18px;
             display: flex;
             align-items: center;
             justify-content: center;
             flex-shrink: 0;
-            margin-right: 2px;
+            margin-right: 3px;
         }
-
         .lb-flag img {
-            width: 12px;
-            height: 8px;
+            width: 14px; height: 10px;
             border-radius: 1px;
             object-fit: cover;
         }
-
         .lb-name {
+            flex: 1;
+            font-size: 9px;
+            font-weight: 600;
+            color: #D0D8EE;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        .lb-score {
+            font-size: 10px;
+            font-weight: 800;
+            color: #7EB8FF;
+            margin-left: 4px;
+            flex-shrink: 0;
+        }
+        .lb-top1 {
+            background: linear-gradient(90deg, rgba(255,215,0,0.15), transparent);
+            border-left: 2px solid #FFD700;
+        }
+        .lb-top1 .lb-rank { color: #FFD700; font-size: 11px; }
+        .lb-top1 .lb-name { color: #FFF; font-size: 10px; }
+        .lb-top1 .lb-score { color: #FFD700; font-size: 11px; }
+        .lb-top2 {
+            background: linear-gradient(90deg, rgba(192,216,240,0.1), transparent);
+            border-left: 2px solid #C0D8F0;
+        }
+        .lb-top2 .lb-rank { color: #C0D8F0; }
+        .lb-top2 .lb-score { color: #C0D8F0; }
+        .lb-top3 {
+            background: linear-gradient(90deg, rgba(205,140,80,0.1), transparent);
+            border-left: 2px solid #CD8C50;
+        }
+        .lb-top3 .lb-rank { color: #CD8C50; }
+        .lb-top3 .lb-score { color: #CD8C50; }
+
+        /* ===== GUIDE - TOP RIGHT ===== */
+        #guide {
+            position: fixed;
+            top: 8px;
+            right: 8px;
+            width: 135px;
+            background: linear-gradient(135deg, rgba(5,10,30,0.92), rgba(10,20,55,0.88));
+            border: 1px solid rgba(255,180,50,0.25);
+            border-radius: 12px;
+            padding: 6px 8px;
+            z-index: 100;
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            box-shadow: 0 3px 15px rgba(0,0,0,0.5);
+        }
+        .guide-title {
+            color: #ffd700;
+            font-size: 11px;
+            font-weight: bold;
+            text-align: center;
+            margin-bottom: 4px;
+            text-shadow: 0 0 8px rgba(255,215,0,0.5);
+        }
+        .guide-row {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            padding: 2px 0;
+        }
+        .guide-icon { font-size: 11px; min-width: 18px; text-align: center; }
+        .guide-text { color: #cceeff; font-size: 9px; font-weight: 600; white-space: nowrap; }
+
+        /* ===== LIKE PROGRESS - BOTTOM LEFT ===== */
+        #like-progress {
+            position: fixed;
+            bottom: 80px;
+            left: 8px;
+            width: 155px;
+            background: linear-gradient(135deg, rgba(5,10,30,0.9), rgba(10,20,55,0.85));
+            border: 1px solid rgba(92,216,92,0.25);
+            border-radius: 10px;
+            padding: 6px 8px;
+            z-index: 100;
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            box-shadow: 0 3px 12px rgba(0,0,0,0.4);
+            display: none; /* hidden until someone likes */
+        }
+        .lp-title {
+            color: #5CD85C;
+            font-size: 9px;
+            font-weight: 700;
+            text-align: center;
+            margin-bottom: 3px;
+            text-shadow: 0 0 6px rgba(92,216,92,0.4);
+        }
+        .lp-row {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            padding: 1px 0;
+        }
+        .lp-name {
             flex: 1;
             font-size: 8px;
             font-weight: 600;
@@ -107,88 +202,32 @@
             overflow: hidden;
             text-overflow: ellipsis;
         }
-
-        .lb-score {
-            font-size: 9px;
-            font-weight: 800;
-            color: #7EB8FF;
-            margin-left: 3px;
+        .lp-bar-container {
+            width: 50px;
+            height: 6px;
+            background: rgba(255,255,255,0.1);
+            border-radius: 3px;
+            overflow: hidden;
+            flex-shrink: 0;
+        }
+        .lp-bar {
+            height: 100%;
+            border-radius: 3px;
+            transition: width 0.5s ease;
+        }
+        .lp-count {
+            font-size: 8px;
+            font-weight: 700;
+            color: #5CD85C;
+            width: 20px;
+            text-align: right;
             flex-shrink: 0;
         }
 
-        /* TOP 1 */
-        .lb-top1 {
-            background: linear-gradient(90deg, rgba(255, 215, 0, 0.12), transparent);
-            border-left: 2px solid #FFD700;
-        }
-        .lb-top1 .lb-rank { color: #FFD700; font-size: 10px; }
-        .lb-top1 .lb-name { color: #FFF; font-size: 9px; }
-        .lb-top1 .lb-score { color: #FFD700; font-size: 10px; }
-
-        /* TOP 2 */
-        .lb-top2 {
-            background: linear-gradient(90deg, rgba(192, 216, 240, 0.08), transparent);
-            border-left: 2px solid #C0D8F0;
-        }
-        .lb-top2 .lb-rank { color: #C0D8F0; }
-        .lb-top2 .lb-score { color: #C0D8F0; }
-
-        /* TOP 3 */
-        .lb-top3 {
-            background: linear-gradient(90deg, rgba(205, 140, 80, 0.08), transparent);
-            border-left: 2px solid #CD8C50;
-        }
-        .lb-top3 .lb-rank { color: #CD8C50; }
-        .lb-top3 .lb-score { color: #CD8C50; }
-
-        /* ===== MOBILE GUIDE - Góc trên phải ===== */
-        #guide {
-            position: fixed;
-            top: 6px;
-            right: 6px;
-            width: 140px;
-            background: linear-gradient(135deg, rgba(8, 12, 35, 0.88), rgba(15, 25, 60, 0.85));
-            border: 1px solid rgba(255, 180, 50, 0.2);
-            border-radius: 10px;
-            padding: 6px 8px;
-            z-index: 100;
-            backdrop-filter: blur(8px);
-            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.4);
-        }
-
-        .guide-title {
-            color: #ffd700;
-            font-size: 10px;
-            font-weight: bold;
-            text-align: center;
-            margin-bottom: 3px;
-            text-shadow: 0 0 6px rgba(255, 215, 0, 0.4);
-        }
-
-        .guide-row {
-            display: flex;
-            align-items: center;
-            gap: 4px;
-            padding: 1px 0;
-        }
-
-        .guide-icon {
-            font-size: 10px;
-            min-width: 16px;
-            text-align: center;
-        }
-
-        .guide-text {
-            color: #cceeff;
-            font-size: 8px;
-            font-weight: 600;
-            white-space: nowrap;
-        }
-
-        /* ===== GIFT POPUP - Giữa màn hình ===== */
+        /* ===== GIFT POPUP - CENTER ===== */
         #gift-popup-container {
             position: fixed;
-            top: 50%;
+            top: 40%;
             left: 50%;
             transform: translate(-50%, -50%);
             z-index: 200;
@@ -197,61 +236,48 @@
             align-items: center;
             gap: 6px;
             pointer-events: none;
-            width: 85%;
-            max-width: 300px;
+            width: 88%;
+            max-width: 320px;
         }
-
         .gift-popup {
             width: 100%;
             opacity: 0;
             transform: translateY(-20px) scale(0.8);
-            transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            transition: all 0.4s cubic-bezier(0.175,0.885,0.32,1.275);
             pointer-events: none;
         }
-
-        .gift-popup-show {
-            opacity: 1;
-            transform: translateY(0) scale(1);
-        }
-
-        .gift-popup-hide {
-            opacity: 0;
-            transform: translateY(-15px) scale(0.9);
-            transition: all 0.4s ease-in;
-        }
-
+        .gift-popup-show { opacity: 1; transform: translateY(0) scale(1); }
+        .gift-popup-hide { opacity: 0; transform: translateY(-15px) scale(0.9); transition: all 0.4s ease-in; }
         .gift-popup-inner {
             display: flex;
             align-items: center;
-            gap: 6px;
-            padding: 6px 10px;
-            border-radius: 12px;
+            gap: 8px;
+            padding: 8px 12px;
+            border-radius: 14px;
             border: 2px solid #fff;
-            backdrop-filter: blur(10px);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
             position: relative;
             overflow: hidden;
         }
-
         .gift-popup-tier {
             position: absolute;
-            top: 2px;
-            right: 6px;
+            top: 3px; right: 8px;
             font-size: 7px;
             font-weight: bold;
             letter-spacing: 0.5px;
             opacity: 0.7;
             text-transform: uppercase;
         }
-
-        .gift-popup-gift-icon { font-size: 22px; flex-shrink: 0; }
+        .gift-popup-gift-icon { font-size: 26px; flex-shrink: 0; }
         .gift-popup-info { flex: 1; min-width: 0; }
-        .gift-popup-user { font-weight: bold; font-size: 10px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-        .gift-popup-gift-name { font-size: 8px; opacity: 0.85; }
-        .gift-popup-coins { font-size: 7px; opacity: 0.7; }
-        .gift-popup-arrow { font-size: 14px; flex-shrink: 0; opacity: 0.6; }
+        .gift-popup-user { font-weight: bold; font-size: 12px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .gift-popup-gift-name { font-size: 9px; opacity: 0.85; }
+        .gift-popup-coins { font-size: 8px; opacity: 0.7; }
+        .gift-popup-arrow { font-size: 16px; flex-shrink: 0; opacity: 0.6; animation: arrowPulse 1s ease infinite; }
         .gift-popup-fish { display: flex; flex-direction: column; align-items: center; flex-shrink: 0; }
-        .gift-popup-fish-icon { font-size: 20px; }
-        .gift-popup-fish-name { font-size: 7px; font-weight: bold; opacity: 0.8; }
+        .gift-popup-fish-icon { font-size: 24px; }
+        .gift-popup-fish-name { font-size: 8px; font-weight: bold; opacity: 0.8; }
 
         /* Tier animations */
         .gift-popup-god .gift-popup-inner { animation: godShine 2s ease infinite; }
@@ -259,57 +285,48 @@
         .gift-popup-mythic .gift-popup-inner { animation: mythicGlow 2s ease infinite; }
 
         @keyframes godShine {
-            0%, 100% { box-shadow: 0 0 20px rgba(255,215,0,0.6), 0 0 40px rgba(224,86,253,0.3); border-color: #ffd700; }
+            0%,100% { box-shadow: 0 0 20px rgba(255,215,0,0.6), 0 0 40px rgba(224,86,253,0.3); border-color: #ffd700; }
             50% { box-shadow: 0 0 30px rgba(224,86,253,0.6), 0 0 60px rgba(255,215,0,0.3); border-color: #e056fd; }
         }
-
         @keyframes bossFlame {
-            0%, 100% { box-shadow: 0 0 15px rgba(214,48,49,0.6); }
+            0%,100% { box-shadow: 0 0 15px rgba(214,48,49,0.6); }
             50% { box-shadow: 0 0 30px rgba(225,112,85,0.8); }
         }
-
         @keyframes mythicGlow {
-            0%, 100% { box-shadow: 0 0 15px rgba(108,92,231,0.5); }
+            0%,100% { box-shadow: 0 0 15px rgba(108,92,231,0.5); }
             50% { box-shadow: 0 0 30px rgba(224,86,253,0.7); }
         }
-
+        @keyframes arrowPulse {
+            0%,100% { opacity: 0.4; transform: translateX(0); }
+            50% { opacity: 1; transform: translateX(3px); }
+        }
         @keyframes giftBounce {
             0% { transform: scale(0) rotate(-20deg); }
             50% { transform: scale(1.3) rotate(10deg); }
             100% { transform: scale(1) rotate(0deg); }
         }
 
-        @keyframes fishAppear {
-            0% { transform: scale(0) translateX(15px); opacity: 0; }
-            100% { transform: scale(1) translateX(0); opacity: 1; }
-        }
-
-        @keyframes arrowPulse {
-            0%, 100% { opacity: 0.4; transform: translateX(0); }
-            50% { opacity: 1; transform: translateX(3px); }
-        }
-
-        /* ===== EVOLUTION NOTIFY ===== */
+        /* ===== EVOLUTION NOTIFY - CENTER TOP ===== */
         #evolution-notify {
             position: fixed;
-            top: 45%;
+            top: 35%;
             left: 50%;
             transform: translate(-50%, -50%) scale(0.5);
-            background: linear-gradient(135deg, rgba(255, 200, 50, 0.95), rgba(255, 150, 0, 0.9));
+            background: linear-gradient(135deg, rgba(255,200,50,0.95), rgba(255,150,0,0.9));
             color: #1a0a00;
             font-size: 14px;
             font-weight: bold;
             padding: 10px 20px;
-            border-radius: 12px;
+            border-radius: 14px;
             z-index: 300;
             opacity: 0;
             pointer-events: none;
-            transition: all 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            transition: all 0.5s cubic-bezier(0.175,0.885,0.32,1.275);
             text-align: center;
-            box-shadow: 0 0 30px rgba(255, 200, 50, 0.5);
-            max-width: 80%;
+            box-shadow: 0 0 30px rgba(255,200,50,0.5);
+            max-width: 85%;
+            white-space: nowrap;
         }
-
         #evolution-notify.show {
             opacity: 1;
             transform: translate(-50%, -50%) scale(1);
@@ -318,7 +335,7 @@
         /* ===== PREDATOR WARNING ===== */
         #predator-warning {
             position: fixed;
-            top: 35%;
+            top: 28%;
             left: 50%;
             transform: translate(-50%, -50%);
             z-index: 250;
@@ -326,79 +343,214 @@
             pointer-events: none;
             display: none;
         }
-
         #predator-warning.show {
             display: block;
             animation: warningPulse 1s ease infinite;
         }
-
-        #predator-warning .warning-text {
+        .warning-text {
             color: #ff4444;
-            font-size: 14px;
+            font-size: 15px;
             font-weight: 900;
-            text-shadow: 0 0 15px rgba(255, 0, 0, 0.7);
+            text-shadow: 0 0 15px rgba(255,0,0,0.7);
             letter-spacing: 1px;
         }
-
         @keyframes warningPulse {
-            0%, 100% { opacity: 0.7; transform: translate(-50%, -50%) scale(1); }
-            50% { opacity: 1; transform: translate(-50%, -50%) scale(1.05); }
+            0%,100% { opacity: 0.7; transform: translate(-50%,-50%) scale(1); }
+            50% { opacity: 1; transform: translate(-50%,-50%) scale(1.05); }
         }
 
-        /* ===== GAME TITLE - Dưới cùng ===== */
+        /* ===== GAME TITLE - BOTTOM CENTER ===== */
         #game-title {
             position: fixed;
-            bottom: 8px;
+            bottom: 10px;
             left: 50%;
             transform: translateX(-50%);
-            color: rgba(255, 255, 255, 0.15);
-            font-size: 8px;
+            color: rgba(255,255,255,0.12);
+            font-size: 9px;
             font-weight: 600;
             letter-spacing: 1px;
             z-index: 50;
             pointer-events: none;
+            white-space: nowrap;
         }
 
-        /* ===== ẨN MUSIC ===== */
+        /* ===== HIDE MUSIC ===== */
         #music-controls { display: none !important; }
+
+        /* ===== VIEWER COUNT - BOTTOM RIGHT ===== */
+        #viewer-info {
+            position: fixed;
+            bottom: 80px;
+            right: 8px;
+            background: linear-gradient(135deg, rgba(5,10,30,0.85), rgba(10,20,55,0.8));
+            border: 1px solid rgba(255,255,255,0.15);
+            border-radius: 20px;
+            padding: 4px 10px;
+            z-index: 100;
+            backdrop-filter: blur(8px);
+            -webkit-backdrop-filter: blur(8px);
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+        .viewer-icon { font-size: 11px; }
+        #viewer-count {
+            color: #fff;
+            font-size: 11px;
+            font-weight: 700;
+        }
     </style>
 </head>
 <body>
     <div id="game-container">
         <canvas id="gameCanvas"></canvas>
 
-        <!-- Leaderboard -->
+        <!-- LEADERBOARD -->
         <div id="leaderboard"></div>
 
-        <!-- Guide -->
+        <!-- HOW TO PLAY -->
         <div id="guide">
             <div class="guide-title">🎮 HOW TO PLAY</div>
-            <div class="guide-row"><span class="guide-icon">❤️</span><span class="guide-text">Like = Tiny Fish</span></div>
+            <div class="guide-row"><span class="guide-icon">❤️</span><span class="guide-text">Like = Grow fish!</span></div>
             <div class="guide-row"><span class="guide-icon">🌹</span><span class="guide-text">Rose = Small Fish</span></div>
             <div class="guide-row"><span class="guide-icon">🎁</span><span class="guide-text">Big Gift = BIG Fish!</span></div>
             <div class="guide-row"><span class="guide-icon">🐋</span><span class="guide-text">Big eat small!</span></div>
             <div class="guide-row"><span class="guide-icon">👑</span><span class="guide-text">Top gifter = #1!</span></div>
         </div>
 
-        <!-- Gift Popup -->
+        <!-- LIKE PROGRESS -->
+        <div id="like-progress">
+            <div class="lp-title">❤️ LIKE FARMERS</div>
+            <div id="lp-rows"></div>
+        </div>
+
+        <!-- VIEWER COUNT -->
+        <div id="viewer-info">
+            <span class="viewer-icon">👁️</span>
+            <span id="viewer-count">0</span>
+        </div>
+
+        <!-- POPUPS -->
         <div id="gift-popup-container"></div>
-
-        <!-- Evolution Notify -->
         <div id="evolution-notify"></div>
-
-        <!-- Predator Warning -->
         <div id="predator-warning">
             <div class="warning-text">⚠️ PREDATOR WAVE ⚠️<br>Send gifts to save your fish!</div>
         </div>
 
-        <!-- Title -->
+        <!-- TITLE -->
         <div id="game-title">🌊 WORLD BATTLE AQUARIUM</div>
     </div>
 
+    <!-- HIGH-RES CANVAS SETUP -->
+    <script>
+        // Fix blurry canvas on mobile — render at device pixel ratio
+        (function() {
+            var canvas = document.getElementById('gameCanvas');
+            var dpr = window.devicePixelRatio || 1;
+            // Cap at 3x to save performance
+            if (dpr > 3) dpr = 3;
+
+            function resizeHiRes() {
+                var w = window.innerWidth;
+                var h = window.innerHeight;
+                canvas.width = w * dpr;
+                canvas.height = h * dpr;
+                canvas.style.width = w + 'px';
+                canvas.style.height = h + 'px';
+                var ctx = canvas.getContext('2d');
+                ctx.scale(dpr, dpr);
+                // Store logical size for game use
+                canvas._logicalWidth = w;
+                canvas._logicalHeight = h;
+                canvas._dpr = dpr;
+            }
+            resizeHiRes();
+            window.addEventListener('resize', resizeHiRes);
+
+            // Prevent all touch scrolling/zooming
+            document.addEventListener('touchmove', function(e) { e.preventDefault(); }, { passive: false });
+            document.addEventListener('gesturestart', function(e) { e.preventDefault(); });
+            document.addEventListener('gesturechange', function(e) { e.preventDefault(); });
+        })();
+    </script>
+
+    <!-- LIKE PROGRESS UI UPDATE -->
+    <script>
+        // Update the like-progress panel every 2 seconds
+        setInterval(function() {
+            if (!window.game || !window.game.likeFarming) return;
+            var farming = window.game.likeFarming;
+            var users = Object.keys(farming);
+            if (users.length === 0) return;
+
+            // Show the panel
+            var panel = document.getElementById('like-progress');
+            if (panel) panel.style.display = 'block';
+
+            // Sort by count descending, take top 5
+            users.sort(function(a, b) { return farming[b].count - farming[a].count; });
+            users = users.slice(0, 5);
+
+            var milestones = [10, 30, 75, 150, 300];
+            var colors = ['#5CD85C', '#54A0FF', '#FF6B6B', '#E056FD', '#FFD700'];
+
+            var html = '';
+            for (var i = 0; i < users.length; i++) {
+                var u = users[i];
+                var count = farming[u].count;
+                // Find next milestone
+                var nextMilestone = 300;
+                var colorIdx = 0;
+                for (var m = 0; m < milestones.length; m++) {
+                    if (count < milestones[m]) { nextMilestone = milestones[m]; colorIdx = m; break; }
+                }
+                var pct = Math.min(100, Math.round((count / nextMilestone) * 100));
+                var barColor = colors[colorIdx] || '#FFD700';
+
+                html += '<div class="lp-row">'
+                    + '<span class="lp-name">' + u + '</span>'
+                    + '<div class="lp-bar-container"><div class="lp-bar" style="width:' + pct + '%;background:' + barColor + ';"></div></div>'
+                    + '<span class="lp-count">' + count + '</span>'
+                    + '</div>';
+            }
+
+            var rowsEl = document.getElementById('lp-rows');
+            if (rowsEl) rowsEl.innerHTML = html;
+        }, 2000);
+    </script>
+
+    <!-- GAME SCRIPTS -->
     <script src="/js/bubble.js"></script>
     <script src="/js/fish.js"></script>
     <script src="/js/audio.js"></script>
     <script src="/js/mc.js"></script>
     <script src="/js/game.js"></script>
+
+    <!-- OVERRIDE RESIZE FOR HI-RES -->
+    <script>
+        // Patch the game's resizeCanvas to use logical dimensions
+        (function() {
+            var origResize;
+            var checkInterval = setInterval(function() {
+                if (window.game) {
+                    clearInterval(checkInterval);
+                    window.game.resizeCanvas = function() {
+                        var canvas = this.canvas;
+                        // Use logical dimensions (CSS pixels)
+                        this.canvas.width = canvas._logicalWidth
+                            ? canvas._logicalWidth * (canvas._dpr || 1)
+                            : window.innerWidth;
+                        this.canvas.height = canvas._logicalHeight
+                            ? canvas._logicalHeight * (canvas._dpr || 1)
+                            : window.innerHeight;
+
+                        if (canvas._dpr) {
+                            this.ctx.scale(canvas._dpr, canvas._dpr);
+                        }
+                    };
+                }
+            }, 200);
+        })();
+    </script>
 </body>
 </html>
